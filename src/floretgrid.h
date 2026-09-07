@@ -15,11 +15,11 @@ public:
 
         enum TileType {
                 // Pentagons in CCW order starting from the +x-axis
-                PENTAGON_NE = 0,
-                PENTAGON_N = 1,
+                PENTAGON_E = 0,
+                PENTAGON_NE = 1,
                 PENTAGON_NW = 2,
-                PENTAGON_SW = 3,
-                PENTAGON_S = 4,
+                PENTAGON_W = 3,
+                PENTAGON_SW = 4,
                 PENTAGON_SE = 5,
                 INVALID = -1,
         };
@@ -35,17 +35,18 @@ public:
         inline static size_t num_tile_shapes = 1;
 
         inline static TileType getTileType( const point_t& p ) {
-                coord_t mx = ((p.x_ % 21) + 21) % 21;
-                coord_t my = ((p.y_ % 21) + 21) % 21;
-                // Use a 21x21 magic lookup table, but write only the first row and use mod
-                // arithmetic instead writing the entire table.
+                const size_t idx = (((p.y_%7)+7)%7)*7 + (((p.x_%7)+7)%7);
+                // Use a 7x7 magic lookup table
                 static const TileType types[] = {
-                        INVALID, INVALID, INVALID, PENTAGON_SW, INVALID, INVALID, PENTAGON_SE,
-                        INVALID, INVALID, PENTAGON_S, INVALID, INVALID, PENTAGON_N, INVALID,
-                        INVALID, PENTAGON_NW, INVALID, INVALID, PENTAGON_NE, INVALID, INVALID
+                        INVALID, PENTAGON_E, PENTAGON_NW, PENTAGON_NE, PENTAGON_SW, PENTAGON_SE, PENTAGON_W,
+                        PENTAGON_NE, PENTAGON_SW, PENTAGON_SE, PENTAGON_W, INVALID, PENTAGON_E, PENTAGON_NW,
+                        PENTAGON_W, INVALID, PENTAGON_E, PENTAGON_NW, PENTAGON_NE, PENTAGON_SW, PENTAGON_SE,
+                        PENTAGON_NW, PENTAGON_NE, PENTAGON_SW, PENTAGON_SE, PENTAGON_W, INVALID, PENTAGON_E,
+                        PENTAGON_SE, PENTAGON_W, INVALID, PENTAGON_E, PENTAGON_NW, PENTAGON_NE, PENTAGON_SW,
+                        PENTAGON_E, PENTAGON_NW, PENTAGON_NE, PENTAGON_SW, PENTAGON_SE, PENTAGON_W, INVALID,
+                        PENTAGON_SW, PENTAGON_SE, PENTAGON_W, INVALID, PENTAGON_E, PENTAGON_NW, PENTAGON_NE
                 };
-                coord_t ind = (mx + 17 * my) % 21;
-                return types[ ind ];
+                return types[ idx ];
         }
 
         inline static TileShape getTileShape( const point_t& p ) {
@@ -78,7 +79,7 @@ public:
         }
 
         static const size_t num_orientations;
-        static const xform<int8_t> orientations[12];
+        static const xform<int8_t> orientations[6];
 
         static const point<int8_t> all_neighbours[6][8];
         static const point<int8_t> edge_neighbours[6][5];
@@ -91,7 +92,9 @@ public:
         }
 
         static point_t getVertexCentre(const point_t& p) {
-                return p - getOrigin(p);
+                point_t pTrans = p - getOrigin(p);
+                pTrans = point_t { (coord_t)(pTrans.x_ * 3), (coord_t)(pTrans.y_ * 3)};
+		return pTrans;
         }
 
         static const point<int8_t> *getVertexVectors(const point_t& p) {
@@ -99,7 +102,7 @@ public:
         }
 
         static point<double> vertexToGrid( const point_t& pt ) {
-                return { (double)pt.x_, (double)pt.y_ };
+                return { pt.x_ / 3.0, pt.y_ / 3.0 };
         }
 
         static point<double> gridToPage( const point<double>& pt ) {
@@ -114,168 +117,162 @@ public:
 template<typename coord>
 const point<int8_t> FloretGrid<coord>::all_neighbours[6][8] = {
         {
-                { 1, 1 },
-                { -1, 2 },
+                { 0, -1 },
+                { 1, -1 },
+                { 1, 0 },
+                { 0, 1 },
+                { -1, 1 },
                 { -2, 1 },
-                { -3, 0 },
-                { -2, -2 },
-                { 0, -3 },
+                { -2, 0 },
+                { -1, -1 }
+        },
+        {
+                { 1, -1 },
+                { 1, 0 },
+                { 0, 1 },
+                { -1, 1 },
+                { -1, 0 },
+                { -1, -1 },
+                { 0, -2 },
+                { 1, -2 }
+        },
+        {
+                { 1, 0 },
+                { 0, 1 },
+                { -1, 1 },
+                { -1, 0 },
+                { 0, -1 },
                 { 1, -2 },
+                { 2, -2 },
                 { 2, -1 }
         },
         {
+                { 0, 1 },
+                { -1, 1 },
+                { -1, 0 },
+                { 0, -1 },
+                { 1, -1 },
                 { 2, -1 },
-                { 1, 1 },
-                { -1, 2 },
-                { -2, 1 },
-                { -1, -1 },
-                { 0, -3 },
-                { 2, -4 },
-                { 3, -3 }
+                { 2, 0 },
+                { 1, 1 }
         },
         {
+                { -1, 1 },
+                { -1, 0 },
+                { 0, -1 },
+                { 1, -1 },
+                { 1, 0 },
                 { 1, 1 },
-                { -1, 2 },
-                { -2, 1 },
-                { -1, -1 },
-                { 1, -2 },
-                { 3, -3 },
-                { 4, -2 },
-                { 3, 0 }
+                { 0, 2 },
+                { -1, 2 }
         },
         {
+                { -1, 0 },
+                { 0, -1 },
+                { 1, -1 },
+                { 1, 0 },
+                { 0, 1 },
                 { -1, 2 },
-                { -2, 1 },
-                { -1, -1 },
-                { 1, -2 },
-                { 2, -1 },
-                { 3, 0 },
-                { 2, 2 },
-                { 0, 3 }
-        },
-        {
-                { 1, 1 },
-                { 2, -1 },
-                { 1, -2 },
-                { -1, -1 },
-                { -2, 1 },
-                { -3, 3 },
-                { -2, 4 },
-                { 0, 3 }
-        },
-        {
-                { -1, -1 },
-                { 1, -2 },
-                { 2, -1 },
-                { 1, 1 },
-                { -1, 2 },
-                { -3, 3 },
-                { -4, 2 },
-                { -3, 0 }
+                { -2, 2 },
+                { -2, 1 }
         }
 };
 
 template<typename coord>
 const point<int8_t> FloretGrid<coord>::edge_neighbours[6][5] = {
         {
-                { 1, 1 },
-                { -1, 2 },
-                { -2, 1 },
-                { 1, -2 },
-                { 2, -1 }
+                { 0, -1 },
+                { 1, -1 },
+                { 1, 0 },
+                { 0, 1 },
+                { -1, 1 }
         },
         {
-                { 2, -1 },
-                { 1, 1 },
-                { -1, 2 },
-                { -2, 1 },
-                { -1, -1 }
+                { 1, -1 },
+                { 1, 0 },
+                { 0, 1 },
+                { -1, 1 },
+                { -1, 0 }
         },
         {
-                { 1, 1 },
-                { -1, 2 },
-                { -2, 1 },
-                { -1, -1 },
-                { 1, -2 }
+                { 1, 0 },
+                { 0, 1 },
+                { -1, 1 },
+                { -1, 0 },
+                { 0, -1 }
         },
         {
-                { -1, 2 },
-                { -2, 1 },
-                { -1, -1 },
-                { 1, -2 },
-                { 2, -1 }
+                { 0, 1 },
+                { -1, 1 },
+                { -1, 0 },
+                { 0, -1 },
+                { 1, -1 }
         },
         {
-                { 1, 1 },
-                { 2, -1 },
-                { 1, -2 },
-                { -1, -1 },
-                { -2, 1 }
+                { -1, 1 },
+                { -1, 0 },
+                { 0, -1 },
+                { 1, -1 },
+                { 1, 0 }
         },
         {
-                { -1, -1 },
-                { 1, -2 },
-                { 2, -1 },
-                { 1, 1 },
-                { -1, 2 }
+                { -1, 0 },
+                { 0, -1 },
+                { 1, -1 },
+                { 1, 0 },
+                { 0, 1 }
         }
 };
 
 
+
 template<typename coord>
 const point<int8_t> FloretGrid<coord>::origins[6] = {
-        { 1, 1 },
-        { -1, 2 },
-        { -2, 1 },
-        { -1, -1 },
-        { 1, -2 },
-        { 2, -1 }
+        { 1, 0 },
+        { 0, 1 },
+        { -1, 1 },
+        { -1, 0 },
+        { 0, -1 },
+        { 1, -1 }
 };
 
 template<typename coord>
-const size_t FloretGrid<coord>::num_orientations = 12;
+const size_t FloretGrid<coord>::num_orientations = 6;
 
 template<typename coord>
-const xform<int8_t> FloretGrid<coord>::orientations[12] = {
+const xform<int8_t> FloretGrid<coord>::orientations[6] = {
         { 1, 0, 0,     0, 1, 0 },
         { 0, -1, 0,    1, 1, 0 },
         { -1, -1, 0,   1, 0, 0 },
         { -1, 0, 0,    0, -1, 0 },
         { 0, 1, 0,     -1, -1, 0 },
-        { 1, 1, 0,     -1, 0, 0 },
-
-        { 0, 1, 0,     1, 0, 0 },
-        { -1, 0, 0,    1, 1, 0 },
-        { -1, -1, 0,   0, 1, 0 },
-        { 0, -1, 0,    -1, 0, 0 },
-        { 1, 0, 0,     -1, -1, 0 },
-        { 1, 1, 0,     0, -1, 0 }
+        { 1, 1, 0,     -1, 0, 0 }
 };
 
 template<typename coord>
 const point<int8_t> FloretGrid<coord>::vertices[6][5] = {
-        { // {1,1}
-                { 0, 0 }, { 2, 0 }, { 2, 1 }, { 1, 2 }, { 0, 2 }
+        { // {1,0}
+                { 0, 0 }, { 4, -2 }, { 5, -1 }, { 4, 1 }, { 2, 2 }
         },
-        { // {-1,2}
-                { 0, 0 }, { 0, 2 }, { -1, 3 }, { -2, 3 }, { -2, 2 }
+        { // {0,1}
+                { 0, 0 }, { 2, 2 }, { 1, 4 }, { -1, 5 }, { -2, 4 }
         },
-        { // {-2,1}
-                { 0, 0 }, { -2, 2 }, { -3, 2 }, { -3, 1 }, { -2, 0 }
+        { // {-1,1}
+                { 0, 0 }, { -2, 4 }, { -4, 5 }, { -5, 4 }, { -4, 2 }
         },
-        { // {-1,-1}
-                { 0, 0 }, { -2, 0 }, { -2, -1 }, { -1, -2 }, { 0, -2 }
+        { // {-1,0}
+                { 0, 0 }, { -4, 2 }, { -5, 1}, { -4, -1 }, { -2, -2 }
         },
-        { // {1,-2}
-                { 0, 0 }, { 0, -2 }, { 1, -3 }, { 2, -3 }, { 2, -2 }
+        { // {0, -1}
+                { 0, 0 }, { -2, -2 }, { -1, -4 }, { 1, -5 }, { 2, -4 }
         },
-        { // {2,-1}
-                { 0, 0 }, { 2, -2 }, { 3, -2 }, { 3, -1 }, { 2, 0 }
+        { // {1,-1}
+                { 0, 0 }, { 2, -4 }, { 4, -5 }, { 5, -4 }, { 4, -2 }
         }
 };
 
 template<typename coord>
-const point<coord> FloretGrid<coord>::translationV1 {4, 1};
+const point<coord> FloretGrid<coord>::translationV1 {3, -1};
 
 template<typename coord>
-const point<coord> FloretGrid<coord>::translationV2 {-1, 5};
+const point<coord> FloretGrid<coord>::translationV2 {1, 2};
