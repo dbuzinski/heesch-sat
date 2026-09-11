@@ -14,6 +14,9 @@
 #include "kitegrid.h"
 #include "halfcairogrid.h"
 #include "bevelhexgrid.h"
+#include "floretgrid.h"
+#include "housegrid.h"
+#include "asanohagrid.h"
 
 // There's no generic "Grid" base class -- because we're implementing
 // all grids as template parameters, we're basically relying on structural
@@ -35,6 +38,9 @@ inline GridType getGridType( int& argc, char **argv )
 		{ "-abolo", ABOLO },
 		{ "-halfcairo", HALFCAIRO },
 		{ "-bevelhex", BEVELHEX },
+		{ "-floret", FLORET},
+		{ "-house", HOUSE},
+		{ "-pon", ASANOHA},
 	};
 
 	int idx = 1; 
@@ -95,6 +101,12 @@ auto dispatchGridTypeImpl(GridType gt, Args&&... args)
 		case HALFCAIRO: return F.template operator()<HalfCairoGrid<coord>>(
 			std::forward<Args>(args)...);
 		case BEVELHEX: return F.template operator()<BevelHexGrid<coord>>(
+			std::forward<Args>(args)...);
+		case FLORET: return F.template operator()<FloretGrid<coord>>(
+			std::forward<Args>(args)...);
+		case HOUSE: return F.template operator()<HouseGrid<coord>>(
+			std::forward<Args>(args)...);
+		case ASANOHA: return F.template operator()<AsanohaGrid<coord>>(
 			std::forward<Args>(args)...);
 		case OMINO: default: return F.template operator()<OminoGrid<coord>>(
 			std::forward<Args>(args)...);
