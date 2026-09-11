@@ -94,7 +94,7 @@ public:
         static point_t getVertexCentre(const point_t& p) {
                 point_t pTrans = p - getOrigin(p);
                 pTrans = point_t { (coord_t)(pTrans.x_ * 3), (coord_t)(pTrans.y_ * 3)};
-		return pTrans;
+                return pTrans;
         }
 
         static const point<int8_t> *getVertexVectors(const point_t& p) {
