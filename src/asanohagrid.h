@@ -89,7 +89,6 @@ public:
                 return 3;
         }
 
-        // TO VERIFY
         static point_t getVertexCentre(const point_t& p) {
                 point_t pTrans = p - getOrigin(p);
                 pTrans = point_t { (coord_t)(pTrans.x_ * 6.0/5.0), (coord_t)(pTrans.y_ * 6.0/5.0)};
@@ -100,12 +99,10 @@ public:
                 return vertices[getTileType(p)];
         }
 
-        // TO VERIFY
         static point<double> vertexToGrid( const point_t& pt ) {
                 return { pt.x_ * 5.0 / 6.0, pt.y_ *  5.0 / 6.0 };
         }
 
-        // TO VERIFY
         static point<double> gridToPage( const point<double>& pt ) {
                 const double sqrt3 = 1.73205080756887729353;
                 return { pt.x_ + 0.5*pt.y_, 0.5 * sqrt3 * pt.y_ };
